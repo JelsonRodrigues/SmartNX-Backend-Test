@@ -1,0 +1,16 @@
+{
+  "name": "smartnx-backend-test",
+  "version": "1.0.0",
+  "description": "SmartNX Junior Backend Developer challenge",
+  "license": "ISC",
+  "author": "Jelson Stoelben Rodrigues",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "expressjs": "^1.0.1",
+    "nodemon": "^3.1.10"
+  }
+}
