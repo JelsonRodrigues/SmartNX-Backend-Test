@@ -7,7 +7,7 @@ import authWithJWT from "../middleware/authWithJWT.mjs";
 
 const router = Router();
 
-router.post('/api/v1/register', 
+router.post('/api/v1/user/register', 
   body("username").isString().isLength({min: 6, max: 64}).withMessage("username must be between 6 and 64 characters long"),  
   body("password").isString().isLength({min: 12, max: 128}).withMessage("password must be between 12 and 128 characters long"),
   async (request, response) => {
@@ -38,7 +38,7 @@ router.post('/api/v1/register',
   response.status(200).send("User registered successfully");
 });
 
-router.get('/api/v1/me', authWithJWT, (request, response) => {
+router.get('/api/v1/user/me', authWithJWT, (request, response) => {
   const user_id = request.user.userId;
   const {User} = models;
 
