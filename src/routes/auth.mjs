@@ -34,7 +34,7 @@ router.post('/api/v1/auth',
       }
 
       const user_jwt_token = jwt.sign(
-        { userId: user.id, username: user.user_name },
+        { user_id: user.id, user_name: user.user_name },
         process.env.JWT_SECRET, { expiresIn: '1h' })
       response.status(200).send({ message: "Authentication successful", token: user_jwt_token });
     });
