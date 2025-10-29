@@ -35,7 +35,7 @@ router.post('/api/v1/user/register',
     return response.status(409).send();
   }
 
-  response.status(200).send("User registered successfully");
+  response.status(201).send("User registered successfully");
 });
 
 router.get('/api/v1/user/me', authWithJWT, (request, response) => {
