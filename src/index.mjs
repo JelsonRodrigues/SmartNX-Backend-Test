@@ -9,7 +9,10 @@ server.use(routes);
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  initDB();
+});
 
 server.get("/", (request, response) => {
   return response.status(200).send("Hello World");

@@ -1,12 +1,10 @@
-import { DataTypes } from "sequelize";
-import db from "./db.mjs"
-
-const User = db.define("User",
-{
-  id : {
-    type: DataTypes.UUID,
-    primaryKey: true,
-    defaultValue: DataTypes.UUIDV4
+export default function userTableFactory(sequelize, DataTypes) {
+  return sequelize.define("User",
+  {
+    id : {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
   },
   display_name : {
     type: DataTypes.STRING,
@@ -24,8 +22,5 @@ const User = db.define("User",
     type: DataTypes.BOOLEAN,
     defaultValue: true
   }
-});
-
-await User.sync({alter: true});
-
-export default User;
+})
+};
