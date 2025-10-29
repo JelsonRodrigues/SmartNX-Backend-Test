@@ -1,7 +1,8 @@
 import { response, Router } from "express";
 import { body, validationResult } from "express-validator";
-import User from "../db/User.mjs"
+import { models } from "../db/index.mjs";
 import calculate_hash_for_plaintext_password from "../utils/password_hasher.mjs"
+
 
 const router = Router();
 
@@ -24,15 +25,18 @@ router.post('/api/v1/register',
 
   const {username, password, display_name} = request.body;
 
+  const  { User } = models;
   const new_user = User.build({"user_name": username, "display_name": display_name, "password": calculate_hash_for_plaintext_password(password)});  
   try {
-  await new_user.save();
+    await new_user.save();
   }
   catch (e) {
     return response.status(409).send();
   }
 
-  response.status(200).send();
+  response.status(200).send("User registered successfully");
 });
+
+
 
 export default router;
