@@ -39,7 +39,7 @@ router.post('/api/v1/user/register',
 });
 
 router.get('/api/v1/user/me', authWithJWT, (request, response) => {
-  const user_id = request.user.userId;
+  const user_id = request.user.user_id;
   const {User} = models;
 
   User.findByPk(user_id).then((user) => {
