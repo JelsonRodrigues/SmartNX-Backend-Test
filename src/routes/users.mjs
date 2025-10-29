@@ -2,6 +2,7 @@ import { response, Router } from "express";
 import { body, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculate_hash_for_plaintext_password from "../utils/password_hasher.mjs"
+import authWithJWT from "../middleware/authWithJWT.mjs";
 
 
 const router = Router();
@@ -37,6 +38,19 @@ router.post('/api/v1/register',
   response.status(200).send("User registered successfully");
 });
 
+router.get('/api/v1/me', authWithJWT, (request, response) => {
+  const user_id = request.user.userId;
+  const {User} = models;
 
+  User.findByPk(user_id).then((user) => {
+    if (!user || !user.is_active) {
+      response.status(404);
+    }
+
+    response.status(200).send({
+      "user_name": user.user_name,
+      "display_name":  user.display_name});
+  })
+});
 
 export default router;
