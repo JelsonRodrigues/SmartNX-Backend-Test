@@ -2,6 +2,7 @@ import { Router } from "express";
 import authWithJWT from "../middleware/authWithJWT.mjs";
 import { body, query, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
+import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
 
 const router = Router();
 
@@ -39,17 +40,19 @@ router.post("/api/v1/post/create",
 });
 
 router.get("/api/v1/posts", authWithJWT,
-  query("page").isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
-  query("limit").isNumeric().withMessage("limit must be a number").isInt({min:1, max: 50}).withMessage("limt must be between 1 and 50"),
+  query("page").optional().isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
+  query("limit").optional().isNumeric().withMessage("limit must be a number").isInt({min:1, max: 50}).withMessage("limt must be between 1 and 50"),
   async (request, response) => {
   const result = validationResult(request);
   if (!result.isEmpty()) {
     return response.status(400).send(result.array());
   }
-  
-  const page  = parseInt(request.query.page);
-  const limit  = parseInt(request.query.limit);
-
+const { Post } = models;
+  const { User } = models;  
+  const page  = parseInt(request.query.page || 1);
+  const limit  = parseInt(request.query.limit || 15);
+  const number_of_items =  await Post.count();
+const pagination = await calculatePaginationPosition(page, limit, number_of_items);
   const start_index = (page - 1) * limit;
   const end_index = page * limit;
   
