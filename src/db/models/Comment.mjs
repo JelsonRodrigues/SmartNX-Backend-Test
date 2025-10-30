@@ -16,8 +16,4 @@ export default function commentTableFactory(sequelize, DataTypes) {
     last_edited: {
       type: DataTypes.TIME,
     },
-    like_count : {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
-    }
   })};
