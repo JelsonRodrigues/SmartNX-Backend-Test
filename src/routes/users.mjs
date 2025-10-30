@@ -41,7 +41,7 @@ router.get('/api/v1/user/me', authWithJWT, async (request, response) => {
   const user_id = request.user.user_id;
   const {User} = models;
 
-  const user = await User.findByPk(user_id, {where: {is_active: true}, attributes : ['user_name', 'display_name', 'id']});
+  const user = await User.findOne({where: {id: user_id, is_active: true}, attributes : ['user_name', 'display_name', 'id']});
   if (!user) {
     return response.status(404).send();
   }
@@ -63,7 +63,7 @@ router.patch('/api/v1/user/me',
     const user_id = request.user.user_id;
     const { User } = models;
 
-    const user = await User.findByPk(user_id, { where: { is_active: true } });
+    const user = await User.findOne({ where: { id: user_id, is_active: true } });
     if (!user) {
       return response.status(404).send();
     }
@@ -76,7 +76,8 @@ router.patch('/api/v1/user/me',
 
     try {
       await user.save();
-      return response.status(200).send(user);
+      const { id, user_name, display_name, createdAt } = user;
+      return response.status(200).send({ id, user_name, display_name, createdAt });
     } catch (e) {
       return response.status(409).send();
     }
@@ -86,7 +87,7 @@ router.patch('/api/v1/user/me',
 router.delete('/api/v1/user/me', authWithJWT, async (request, response) => {
   const user_id = request.user.user_id;
   const { User } = models;
-  const user = await User.findByPk(user_id, { where: { is_active: true } });
+  const user = await User.findOne({ where: { id: user_id, is_active: true } });
   if (!user) {
     return response.status(404).send();
   }
@@ -120,19 +121,15 @@ router.get('/api/v1/users',
       const items = await User.findAll({
         where: { is_active: true },
         offset: start_index,
-        limit: limit
+        limit: limit,
+        attributes: ['id', 'user_name', 'display_name', 'createdAt']
       });
 
       if (!items) {
         return response.status(404).send();
       }
-      
-      const filtered_items = items.map(user => ({
-        "user_name": user.user_name,
-        "display_name": user.display_name
-      }));
 
-      return response.status(200).send({ pagination, items: filtered_items });
+      return response.status(200).send({ pagination, items });
     } catch (err) {
       return response.status(500).send();
     }
@@ -145,7 +142,7 @@ router.get('/api/v1/user/:username',
   const { User } = models;
 
   try {
-    const user = await User.findOne({ where: { user_name: username, is_active : true} , attributes : ['user_name', 'display_name', 'createdAt']});
+    const user = await User.findOne({ where: { user_name: username, is_active : true} , attributes : ['id', 'user_name', 'display_name', 'createdAt']});
     if (!user) {
       return response.status(404).send();
     }
@@ -163,7 +160,7 @@ router.get('/api/v1/user/id/:user_id',
     const { User } = models;
 
     try {
-      const user = await User.findByPk(user_id, { where: {is_active : true}, attributes : ['user_name', 'display_name', 'id']});
+      const user = await User.findOne({ where: { id: user_id, is_active: true }, attributes: ['id', 'user_name', 'display_name', 'createdAt'] });
       if (!user) {
         return response.status(404).send();
       }
