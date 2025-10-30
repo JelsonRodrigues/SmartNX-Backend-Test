@@ -42,15 +42,12 @@ router.get('/api/v1/user/me', authWithJWT, async (request, response) => {
   const user_id = request.user.user_id;
   const {User} = models;
 
-  const user = await User.findByPk(user_id);
-  if (!user || !user.is_active) {
+  const user = await User.findByPk(user_id, {where: {is_active: true}, attributes : ['user_name', 'display_name', 'id']});
+  if (!user) {
     return response.status(404).send();
   }
 
-  return response.status(200).send({
-    "user_name": user.user_name,
-    "display_name":  user.display_name
-  });
+  return response.status(200).send(user);
 });
 
 router.get('/api/v1/users', 
@@ -91,5 +88,41 @@ router.get('/api/v1/users',
       return response.status(500).send();
     }
   });
+
+router.get('/api/v1/user/:username', 
+  authWithJWT,
+  async (request, response) => {
+  const { username } = request.params;
+  const { User } = models;
+
+  try {
+    const user = await User.findOne({ where: { user_name: username, is_active : true} , attributes : ['user_name', 'display_name', 'createdAt']});
+    if (!user) {
+      return response.status(404).send();
+    }
+    return response.status(200).send(user);
+  }
+  catch (error) {
+    return response.status().send();
+  }
+});
+
+router.get('/api/v1/user/id/:user_id',
+  authWithJWT,
+  async (request, response) => {
+    const { user_id } = request.params;
+    const { User } = models;
+
+    try {
+      const user = await User.findByPk(user_id, { where: {is_active : true}, attributes : ['user_name', 'display_name', 'id']});
+      if (!user) {
+        return response.status(404).send();
+      }
+      return response.status(200).send(user);
+    }
+    catch (error) {
+      return response.status(500).send();
+    };
+});
 
 export default router;
