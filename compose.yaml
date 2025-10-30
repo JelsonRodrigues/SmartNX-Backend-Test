@@ -3,7 +3,7 @@ version: '3.9'
 networks:
   external-network:
     driver: bridge
-    external: true
+    internal: false
     enable_ipv6: true
   internal-network:
     driver: bridge
