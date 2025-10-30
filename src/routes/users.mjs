@@ -10,6 +10,7 @@ const router = Router();
 router.post('/api/v1/user/register', 
   body("username").isString().isLength({min: 6, max: 64}).withMessage("username must be between 6 and 64 characters long"),  
   body("password").isString().isLength({min: 12, max: 128}).withMessage("password must be between 12 and 128 characters long"),
+  body("display_name").optional().isString().isLength({min:1, max: 128}).withMessage("display_name must be between 1 and 128 characters long"),
   async (request, response) => {
   const result_of_validation = validationResult(request);
   
@@ -22,8 +23,6 @@ router.post('/api/v1/user/register',
       );
   }
   
-  console.log(request.body);
-
   const {username, password, display_name} = request.body;
 
   const  { User } = models;
@@ -49,6 +48,40 @@ router.get('/api/v1/user/me', authWithJWT, async (request, response) => {
 
   return response.status(200).send(user);
 });
+
+router.patch('/api/v1/user/me', 
+  authWithJWT,
+  body("display_name").optional().isString().isLength({min:1, max: 128}).withMessage("display_name must be between 1 and 128 characters long"),
+  body("password").optional().isString().isLength({min: 12, max: 128}).withMessage("password must be between 12 and 128 characters long"),
+  body("username").optional().isString().isLength({min: 6, max: 64}).withMessage("username must be between 6 and 64 characters long"),
+    async (request, response) => {
+    const result_of_validation = validationResult(request);
+    if (!result_of_validation.isEmpty()) {
+      return response.status(400).send(result_of_validation.array());
+    }
+    if (!request.body) {return response.status(400).send();}
+    const user_id = request.user.user_id;
+    const { User } = models;
+
+    const user = await User.findByPk(user_id, { where: { is_active: true } });
+    if (!user) {
+      return response.status(404).send();
+    }
+
+    const { display_name, password, username } = request.body || {};
+
+    if (display_name !== undefined) user.display_name = display_name;
+    if (password !== undefined) user.password = calculate_hash_for_plaintext_password(password);
+    if (username !== undefined) user.user_name = username;
+
+    try {
+      await user.save();
+      return response.status(200).send(user);
+    } catch (e) {
+      return response.status(409).send();
+    }
+  }
+);
 
 router.get('/api/v1/users', 
   authWithJWT, 
