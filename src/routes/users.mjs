@@ -83,6 +83,22 @@ router.patch('/api/v1/user/me',
   }
 );
 
+router.delete('/api/v1/user/me', authWithJWT, async (request, response) => {
+  const user_id = request.user.user_id;
+  const { User } = models;
+  const user = await User.findByPk(user_id, { where: { is_active: true } });
+  if (!user) {
+    return response.status(404).send();
+  }
+  user.is_active = false;
+  try {
+    await user.save();
+    return response.status(200).send();
+  } catch (e) {
+    return response.status(500).send();
+  }
+});
+
 router.get('/api/v1/users', 
   authWithJWT, 
   query("page").optional().isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
