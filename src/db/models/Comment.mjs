@@ -3,6 +3,7 @@ export default function commentTableFactory(sequelize, DataTypes) {
   {
     id : {
       type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
     content : {
