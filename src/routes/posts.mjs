@@ -31,12 +31,14 @@ router.post("/api/v1/post/create",
 
   try {
     await new_post.save();
+    const { id, title, content, createdAt, last_edited } = new_post;
+    return response.status(201).send({ id, title, content, createdAt, last_edited });
   }
   catch (e) {
     return response.status(409).send();
   }
 
-  response.status(201).send("Post added");
+  
 });
 
 router.get("/api/v1/posts", authWithJWT,
@@ -83,12 +85,10 @@ router.get("/api/v1/post/:post_id",
     const { Post } = models;
     const { User } = models;
     try {
-      const item = await Post.findByPk(
-        post_id, 
-        {
-          where : { is_active : true }, 
-          attributes : ['id', 'title', 'content', 'createdAt', 'last_edited'], 
-          include: { model: User, where : { is_active: true }, attributes: ['user_name', 'display_name']}
+      const item = await Post.findOne({
+        where: { id: post_id, is_active: true },
+        attributes: ['id', 'title', 'content', 'createdAt', 'last_edited'],
+        include: { model: User, where: { is_active: true }, attributes: ['user_name', 'display_name'] }
         });
       if (!item) { 
         return response.status(404).send();
@@ -115,7 +115,7 @@ router.patch("/api/v1/post/:id", authWithJWT,
 
     const post_id = request.params.id;
     const { Post } = models;
-    const post = await Post.findByPk(post_id, { where: { is_active : true }});
+    const post = await Post.findOne({ where: { id: post_id, is_active: true } });
     if (!post) {
       return response.status(404).send();
     }
@@ -134,7 +134,8 @@ router.patch("/api/v1/post/:id", authWithJWT,
 
     try {
       await post.save();
-      return response.status(200).send(post);
+      const { id, title, content, createdAt, last_edited } = post;
+      return response.status(200).send({ id, title, content, createdAt, last_edited });
     } catch (error) {
       console.log(error);
       return response.status(500).send();
@@ -150,7 +151,7 @@ router.delete("/api/v1/post/:id", authWithJWT,
     }
     const post_id = request.params.id;
     const { Post } = models;
-    const post = await Post.findByPk(post_id, { where: { is_active : true }});
+    const post = await Post.findOne({ where: { id: post_id, is_active: true } });
     if (!post) {
       return response.status(404).send();
     }
