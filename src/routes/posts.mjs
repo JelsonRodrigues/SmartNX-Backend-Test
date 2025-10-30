@@ -1,6 +1,6 @@
 import { Router } from "express";
 import authWithJWT from "../middleware/authWithJWT.mjs";
-import { body, query, validationResult } from "express-validator";
+import { body, query, param, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
 
@@ -69,5 +69,36 @@ router.get("/api/v1/posts", authWithJWT,
     return response.status(500).send();
   }
 });
+
+router.get("/api/v1/post/:post_id",
+  authWithJWT,
+  param("post_id").isUUID().notEmpty(),
+  async (request, response) => {
+    const result = validationResult(request);
+    if (!result.isEmpty()) {
+      return response.status(400).send(result.array());
+    }
+
+    const post_id = request.params.post_id;
+    const { Post } = models;
+    const { User } = models;
+    try {
+      const item = await Post.findByPk(
+        post_id, 
+        {
+          where : { is_active : true }, 
+          attributes : ['id', 'title', 'content', 'createdAt', 'last_edited'], 
+          include: { model: User, where : { is_active: true }, attributes: ['user_name', 'display_name']}
+        });
+      if (!item) { 
+        return response.status(404).send();
+      }
+      return response.status(200).send(item);
+    }
+    catch (error) {
+      return response.status(500).send();
+    }
+  }
+);
 
 export default router;
