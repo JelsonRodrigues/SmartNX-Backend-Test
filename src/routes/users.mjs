@@ -1,9 +1,9 @@
-import { response, Router } from "express";
-import { body, validationResult } from "express-validator";
+import { Router } from "express";
+import { body, validationResult, query } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculate_hash_for_plaintext_password from "../utils/password_hasher.mjs"
 import authWithJWT from "../middleware/authWithJWT.mjs";
-
+import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
 
 const router = Router();
 
@@ -38,19 +38,58 @@ router.post('/api/v1/user/register',
   response.status(201).send("User registered successfully");
 });
 
-router.get('/api/v1/user/me', authWithJWT, (request, response) => {
+router.get('/api/v1/user/me', authWithJWT, async (request, response) => {
   const user_id = request.user.user_id;
   const {User} = models;
 
-  User.findByPk(user_id).then((user) => {
-    if (!user || !user.is_active) {
-      response.status(404);
-    }
+  const user = await User.findByPk(user_id);
+  if (!user || !user.is_active) {
+    return response.status(404).send();
+  }
 
-    response.status(200).send({
-      "user_name": user.user_name,
-      "display_name":  user.display_name});
-  })
+  return response.status(200).send({
+    "user_name": user.user_name,
+    "display_name":  user.display_name
+  });
 });
+
+router.get('/api/v1/users', 
+  authWithJWT, 
+  query("page").optional().isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
+  query("limit").optional().isNumeric().withMessage("limit must be a number").isInt({min:1, max: 50}).withMessage("limt must be between 1 and 50"),
+  async (request, response) => {
+    const result = validationResult(request);
+    if (!result.isEmpty()) {
+      return response.status(400).send(result.array());
+    }
+    const { User } = models;
+    console.log(request.query);
+    const page = parseInt(request.query.page || 1);
+    const limit = parseInt(request.query.limit || 15);
+    const number_of_items = await User.count();
+    const pagination = await calculatePaginationPosition(page, limit, number_of_items);
+    const start_index = (page - 1) * limit;
+
+    try {
+      const items = await User.findAll({
+        where: { is_active: true },
+        offset: start_index,
+        limit: limit
+      });
+
+      if (!items) {
+        return response.status(404).send();
+      }
+      
+      const filtered_items = items.map(user => ({
+        "user_name": user.user_name,
+        "display_name": user.display_name
+      }));
+
+      return response.status(200).send({ pagination, items: filtered_items });
+    } catch (err) {
+      return response.status(500).send();
+    }
+  });
 
 export default router;
