@@ -2,6 +2,9 @@ import Sequelize from 'sequelize';
 import userTableFactory from './models/User.mjs';
 import postTableFactory from './models/Post.mjs';
 import commentTableFactory from './models/Comment.mjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const db_host = process.env.DATABASE_HOST || 'localhost';
 const db_user = process.env.DATABASE_USER || 'postgres';
