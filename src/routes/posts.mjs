@@ -101,4 +101,44 @@ router.get("/api/v1/post/:post_id",
   }
 );
 
+router.patch("/api/v1/post/:id", authWithJWT,
+  body("title").optional().isString().isLength({min: 1, max: 64}),
+  body("content").optional().isString().isLength({min: 1, max: 255}),
+  param("id").isUUID().notEmpty(),
+  async (request, response) => {
+    const result_of_validation = validationResult(request)
+    if (!result_of_validation.isEmpty()) {
+      return response
+        .status(400)
+        .send(result_of_validation.array());
+    }
+
+    const post_id = request.params.id;
+    const { Post } = models;
+    const post = await Post.findByPk(post_id, { where: { is_active : true }});
+    if (!post) {
+      return response.status(404).send();
+    }
+
+    if (post.user_id !== request.user.user_id) {
+      return response.status(403).send();
+    }
+
+    if (!request.body) {return response.status(400).send();}
+
+    const { title, content } = request.body || {};
+    if (title !== undefined) post.title = title;
+    if (content !== undefined) post.content = content;
+    post.last_edited = new Date().toISOString().replace('T', ' ').replace('Z', ' +00:00');
+
+
+    try {
+      await post.save();
+      return response.status(200).send(post);
+    } catch (error) {
+      console.log(error);
+      return response.status(500).send();
+    }}
+);
+
 export default router;
