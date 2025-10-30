@@ -47,39 +47,27 @@ router.get("/api/v1/posts", authWithJWT,
   if (!result.isEmpty()) {
     return response.status(400).send(result.array());
   }
-const { Post } = models;
-  const { User } = models;  
+  const { Post } = models;
+  const { User } = models;
   const page  = parseInt(request.query.page || 1);
   const limit  = parseInt(request.query.limit || 15);
   const number_of_items =  await Post.count();
-const pagination = await calculatePaginationPosition(page, limit, number_of_items);
+  const pagination = await calculatePaginationPosition(page, limit, number_of_items);
   const start_index = (page - 1) * limit;
-  const end_index = page * limit;
-  
-  const { Post } = models;
-  const number_of_posts =  await Post.count();
-
-  const pagination = {}
-  if (start_index > 0 && start_index < number_of_posts) {
-    pagination.previous = {
-      page : page -1,
-      limit : limit
-    }
-  }
-  if (end_index < number_of_posts) {
-    pagination.next = {
-      page : page + 1,
-      limit : limit
-    }
-  }
-
-  Post.findAll({offset : start_index, limit: limit}).then((posts) => {
-    if (!posts) {
+  try {
+    const items = await Post.findAll(
+      { where: { is_active: true },
+      attributes: ['id', 'title', 'content', 'createdAt', 'last_edited'],
+      offset: start_index, limit: limit, 
+      include: { model: User, where : { is_active: true}, attributes: ['user_name', 'display_name']}});
+    if (!items) {
       return response.send(404);
     }
 
-    response.status(200).send({ pagination, posts });
-  })
+    return response.status(200).send({ pagination, items });
+  } catch (err) {
+    return response.status(500).send();
+  }
 });
 
 export default router;
