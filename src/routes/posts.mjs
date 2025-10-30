@@ -141,4 +141,29 @@ router.patch("/api/v1/post/:id", authWithJWT,
     }}
 );
 
+router.delete("/api/v1/post/:id", authWithJWT,
+  param("id").isUUID().notEmpty(),
+  async (request, response) => {
+    const result_of_validation = validationResult(request)
+    if (!result_of_validation.isEmpty()) {
+      return response.status(400).send(result_of_validation.array());
+    }
+    const post_id = request.params.id;
+    const { Post } = models;
+    const post = await Post.findByPk(post_id, { where: { is_active : true }});
+    if (!post) {
+      return response.status(404).send();
+    }
+    if (post.user_id !== request.user.user_id) {
+      return response.status(403).send();
+    }
+    post.is_active = false;
+    try {
+      await post.save();
+      return response.status(200).send();
+    } catch (error) {
+      return response.status(500).send();
+    }
+  });
+
 export default router;
