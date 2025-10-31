@@ -1,7 +1,7 @@
-import express from 'express';
-import routes from './routes/index.mjs';
-import dotenv from 'dotenv';
-import { initDB } from './db/index.mjs';
+import express from "express";
+import routes from "./routes/index.mjs";
+import dotenv from "dotenv";
+import { initDB } from "./db/index.mjs";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -20,5 +20,4 @@ server.listen(PORT, async () => {
 
 server.get("/", (request, response) => {
   return response.status(200).send("Hello World");
-})
-
+});

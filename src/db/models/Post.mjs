@@ -1,24 +1,24 @@
 export default function postTableFactory(sequelize, DataTypes) {
-  return sequelize.define("Post",
-  {
-    id : {
+  return sequelize.define("Post", {
+    id: {
       type: DataTypes.UUID,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
+      defaultValue: DataTypes.UUIDV4,
     },
-    title : {
+    title: {
       type: DataTypes.STRING(64),
-      allowNull: false
+      allowNull: false,
     },
-    content : {
+    content: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     last_edited: {
       type: DataTypes.TIME,
     },
-    is_active : {
+    is_active: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
-    }
-  })}
+      defaultValue: true,
+    },
+  });
+}

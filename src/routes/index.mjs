@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import { Router } from "express";
 import usersRouter from "./users.mjs";
 import authRouter from "./auth.mjs";
 import postsRouter from "./posts.mjs";

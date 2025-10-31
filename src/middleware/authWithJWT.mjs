@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 export default function authWithJWT(request, response, next) {
-  const authHeader = request.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = request.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     return response.sendStatus(401);
