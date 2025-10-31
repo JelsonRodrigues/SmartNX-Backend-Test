@@ -9,11 +9,11 @@ export default function commentTableFactory(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    is_active: {
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
-    last_edited: {
+    lastEdited: {
       type: DataTypes.TIME,
     },
   });

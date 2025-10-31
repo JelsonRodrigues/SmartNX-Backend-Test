@@ -1,7 +1,6 @@
 import { response, Router } from "express";
 import { body, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
-import calculate_hash_for_plaintext_password from "../utils/password_hasher.mjs";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -18,16 +17,16 @@ router.post(
     .isLength({ min: 12, max: 128 })
     .withMessage("password must be between 12 and 128 characters long"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
+    const resultOfValidation = validationResult(request);
 
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
     const { username, password } = request.body;
     const { User } = models;
     const user = await User.findOne({
-      where: { user_name: username, is_active: true },
+      where: { userName: username, isActive: true },
     });
 
     if (!user) {
@@ -38,15 +37,15 @@ router.post(
       return response.status(401).send("Invalid username or password");
     }
 
-    const user_jwt_token = jwt.sign(
-      { user_id: user.id, user_name: user.user_name },
+    const userJwtToken = jwt.sign(
+      { userId: user.id, userName: user.userName },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return response
       .status(200)
-      .send({ message: "Authentication successful", token: user_jwt_token });
+      .send({ message: "Authentication successful", token: userJwtToken });
   }
 );
 

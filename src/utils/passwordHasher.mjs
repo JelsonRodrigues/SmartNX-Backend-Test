@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 
-export default function calculate_hash_for_plaintext_password(
+export default function calculateHashForPlaintextPassword(
   plain_text_password,
   rounds = 10
 ) {

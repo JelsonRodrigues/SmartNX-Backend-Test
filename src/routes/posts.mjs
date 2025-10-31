@@ -12,25 +12,25 @@ router.post(
   body("title").isString().isLength({ min: 1, max: 64 }),
   body("content").isString().isLength({ min: 1, max: 255 }),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
-    const user_id = request.user.user_id;
+    const userId = request.user.userId;
     const { Post } = models;
-    const new_post = Post.build({
+    const newPost = Post.build({
       title: request.body.title,
       content: request.body.content,
-      user_id: user_id,
+      userId: userId,
     });
 
     try {
-      await new_post.save();
-      const { id, title, content, createdAt, last_edited } = new_post;
+      await newPost.save();
+      const { id, title, content, createdAt, lastEdited } = newPost;
       return response
         .status(201)
-        .send({ id, title, content, createdAt, last_edited });
+        .send({ id, title, content, createdAt, lastEdited });
     } catch (e) {
       return response.status(409).send();
     }
@@ -40,7 +40,7 @@ router.post(
 router.get(
   "/api/v1/posts",
   authWithJWT,
-  param("user_id").optional().isUUID().notEmpty(),
+  param("userId").optional().isUUID().notEmpty(),
   query("page")
     .optional()
     .isNumeric()
@@ -60,28 +60,28 @@ router.get(
     }
     const { Post } = models;
     const { User } = models;
-    const user_id = request.query.user_id;
+    const userId = request.query.userId;
     const page = parseInt(request.query.page || 1);
     const limit = parseInt(request.query.limit || 15);
-    const number_of_items = await Post.count({
-      where: { is_active: true, ...(user_id ? { user_id: user_id } : {}) },
+    const numberOfItems = await Post.count({
+      where: { isActive: true, ...(userId ? { userId: userId } : {}) },
     });
     const pagination = await calculatePaginationPosition(
       page,
       limit,
-      number_of_items
+      numberOfItems
     );
-    const start_index = (page - 1) * limit;
+    const startIndex = (page - 1) * limit;
     try {
       const items = await Post.findAll({
-        where: { is_active: true, ...(user_id ? { user_id: user_id } : {}) },
-        attributes: ["id", "title", "content", "createdAt", "last_edited"],
-        offset: start_index,
+        where: { isActive: true, ...(userId ? { userId: userId } : {}) },
+        attributes: ["id", "title", "content", "createdAt", "lastEdited"],
+        offset: startIndex,
         limit: limit,
         include: {
           model: User,
-          where: { is_active: true },
-          attributes: ["user_name", "display_name"],
+          where: { isActive: true },
+          attributes: ["userName", "displayName"],
         },
       });
       if (!items) {
@@ -96,26 +96,26 @@ router.get(
 );
 
 router.get(
-  "/api/v1/post/:post_id",
+  "/api/v1/post/:postId",
   authWithJWT,
-  param("post_id").isUUID().notEmpty(),
+  param("postId").isUUID().notEmpty(),
   async (request, response) => {
     const result = validationResult(request);
     if (!result.isEmpty()) {
       return response.status(400).send(result.array());
     }
 
-    const post_id = request.params.post_id;
+    const postId = request.params.postId;
     const { Post } = models;
     const { User } = models;
     try {
       const item = await Post.findOne({
-        where: { id: post_id, is_active: true },
-        attributes: ["id", "title", "content", "createdAt", "last_edited"],
+        where: { id: postId, isActive: true },
+        attributes: ["id", "title", "content", "createdAt", "lastEdited"],
         include: {
           model: User,
-          where: { is_active: true },
-          attributes: ["user_name", "display_name"],
+          where: { isActive: true },
+          attributes: ["userName", "displayName"],
         },
       });
       if (!item) {
@@ -135,21 +135,21 @@ router.patch(
   body("content").optional().isString().isLength({ min: 1, max: 255 }),
   param("id").isUUID().notEmpty(),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
-    const post_id = request.params.id;
+    const postId = request.params.id;
     const { Post } = models;
     const post = await Post.findOne({
-      where: { id: post_id, is_active: true },
+      where: { id: postId, isActive: true },
     });
     if (!post) {
       return response.status(404).send();
     }
 
-    if (post.user_id !== request.user.user_id) {
+    if (post.userId !== request.user.userId) {
       return response.status(403).send();
     }
 
@@ -160,17 +160,17 @@ router.patch(
     const { title, content } = request.body || {};
     if (title !== undefined) post.title = title;
     if (content !== undefined) post.content = content;
-    post.last_edited = new Date()
+    post.lastEdited = new Date()
       .toISOString()
       .replace("T", " ")
       .replace("Z", " +00:00");
 
     try {
       await post.save();
-      const { id, title, content, createdAt, last_edited } = post;
+      const { id, title, content, createdAt, lastEdited } = post;
       return response
         .status(200)
-        .send({ id, title, content, createdAt, last_edited });
+        .send({ id, title, content, createdAt, lastEdited });
     } catch (error) {
       console.log(error);
       return response.status(500).send();
@@ -183,22 +183,22 @@ router.delete(
   authWithJWT,
   param("id").isUUID().notEmpty(),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
-    const post_id = request.params.id;
+    const postId = request.params.id;
     const { Post } = models;
     const post = await Post.findOne({
-      where: { id: post_id, is_active: true },
+      where: { id: postId, isActive: true },
     });
     if (!post) {
       return response.status(404).send();
     }
-    if (post.user_id !== request.user.user_id) {
+    if (post.userId !== request.user.userId) {
       return response.status(403).send();
     }
-    post.is_active = false;
+    post.isActive = false;
     try {
       await post.save();
       return response.status(200).send();

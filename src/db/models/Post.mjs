@@ -13,10 +13,10 @@ export default function postTableFactory(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    last_edited: {
+    lastEdited: {
       type: DataTypes.TIME,
     },
-    is_active: {
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },

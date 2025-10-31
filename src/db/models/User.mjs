@@ -5,10 +5,10 @@ export default function userTableFactory(sequelize, DataTypes) {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    display_name: {
+    displayName: {
       type: DataTypes.STRING,
     },
-    user_name: {
+    userName: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
@@ -17,7 +17,7 @@ export default function userTableFactory(sequelize, DataTypes) {
       type: DataTypes.STRING(64),
       allowNull: false,
     },
-    is_active: {
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },

@@ -6,14 +6,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const db_host = process.env.DATABASE_HOST || "localhost";
-const db_user = process.env.DATABASE_USER || "postgres";
-const db_password = process.env.DATABASE_PASSWORD || "postgres";
-const db_port = process.env.DATABASE_PORT || "5432";
-const db_name = process.env.DATABASE_NAME || "development";
+const dbHost = process.env.DATABASE_HOST || "localhost";
+const dbUser = process.env.DATABASE_USER || "postgres";
+const dbPassword = process.env.DATABASE_PASSWORD || "postgres";
+const dbPort = process.env.DATABASE_PORT || "5432";
+const dbName = process.env.DATABASE_NAME || "development";
 
 const sequelize = new Sequelize(
-  `postgres://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}`
+  `postgres://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}`
 );
 
 const models = {};
@@ -33,16 +33,16 @@ export async function initDB() {
 
   // Setup relations between the tables
   // User and Post -> 1:M
-  models.User.hasMany(models.Post, { foreignKey: "user_id" });
-  models.Post.belongsTo(models.User, { foreignKey: "user_id" });
+  models.User.hasMany(models.Post, { foreignKey: "userId" });
+  models.Post.belongsTo(models.User, { foreignKey: "userId" });
 
   // Post and Comment -> 1:M
-  models.Post.hasMany(models.Comment, { foreignKey: "post_id" });
-  models.Comment.belongsTo(models.Post, { foreignKey: "post_id" });
+  models.Post.hasMany(models.Comment, { foreignKey: "postId" });
+  models.Comment.belongsTo(models.Post, { foreignKey: "postId" });
 
   // User and Comment -> 1:M
-  models.User.hasMany(models.Comment, { foreignKey: "user_id" });
-  models.Comment.belongsTo(models.User, { foreignKey: "user_id" });
+  models.User.hasMany(models.Comment, { foreignKey: "userId" });
+  models.Comment.belongsTo(models.User, { foreignKey: "userId" });
 
   await sequelize.sync({ alter: true });
 

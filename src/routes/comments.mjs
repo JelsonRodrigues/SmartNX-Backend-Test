@@ -7,34 +7,33 @@ import calculatePaginationPosition from "../utils/calculatePaginationPosition.mj
 const router = Router();
 
 router.post(
-  "/api/v1/post/:post_id/comment",
+  "/api/v1/post/:postId/comment",
   authWithJWT,
-  param("post_id").isUUID().withMessage("post_id must be a valid UUID"),
+  param("postId").isUUID().withMessage("postId must be a valid UUID"),
   body("content")
     .isString()
     .isLength({ min: 1, max: 255 })
     .withMessage("content must be between 1 and 255 characters long"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
-    const user_id = request.user.user_id;
+    const userId = request.user.userId;
     const { Comment } = models;
-    const new_comment = Comment.build({
+    const newComment = Comment.build({
       content: request.body.content,
-      user_id: user_id,
-      post_id: request.params.post_id,
+      userId: userId,
+      postId: request.params.postId,
     });
 
     try {
-      await new_comment.save();
-      const { id, content, post_id, user_id, createdAt, last_edited } =
-        new_comment;
+      await newComment.save();
+      const { id, content, postId, userId, createdAt, lastEdited } = newComment;
       return response
         .status(201)
-        .send({ id, content, post_id, user_id, createdAt, last_edited });
+        .send({ id, content, postId, userId, createdAt, lastEdited });
     } catch (e) {
       console.error(e);
       return response.status(500).send();
@@ -43,9 +42,9 @@ router.post(
 );
 
 router.get(
-  "/api/v1/comments/post/:post_id/",
+  "/api/v1/comments/post/:postId/",
   authWithJWT,
-  param("post_id").isUUID().withMessage("post_id must be a valid UUID"),
+  param("postId").isUUID().withMessage("postId must be a valid UUID"),
   query("page")
     .optional()
     .isNumeric()
@@ -59,42 +58,42 @@ router.get(
     .isInt({ min: 1, max: 50 })
     .withMessage("limt must be between 1 and 50"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
     const { Comment, User } = models;
-    const post_id = request.params.post_id;
+    const postId = request.params.postId;
 
     const page = parseInt(request.query.page || 1);
     const limit = parseInt(request.query.limit || 15);
-    const number_of_items = await Comment.count({
-      where: { post_id, is_active: true },
+    const numberOfItems = await Comment.count({
+      where: { postId, isActive: true },
     });
     const pagination = await calculatePaginationPosition(
       page,
       limit,
-      number_of_items
+      numberOfItems
     );
-    const start_index = (page - 1) * limit;
+    const startIndex = (page - 1) * limit;
 
     try {
       const comments = await Comment.findAll({
-        where: { post_id: post_id, is_active: true },
-        offset: start_index,
+        where: { postId: postId, isActive: true },
+        offset: startIndex,
         limit: limit,
         attributes: [
           "id",
           "content",
-          "post_id",
-          "user_id",
+          "postId",
+          "userId",
           "createdAt",
-          "last_edited",
+          "lastEdited",
         ],
         include: [
           {
             model: User,
-            attributes: ["user_name", "display_name"],
+            attributes: ["userName", "displayName"],
           },
         ],
         order: [["createdAt", "DESC"]],
@@ -111,24 +110,24 @@ router.get(
 
 // - Delete comment
 router.delete(
-  "/api/v1/comment/:comment_id",
+  "/api/v1/comment/:commentId",
   authWithJWT,
-  param("comment_id").isUUID().withMessage("comment_id must be a valid UUID"),
+  param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
     const { Comment } = models;
-    const user_id = request.user.user_id;
-    const { comment_id } = request.params;
+    const userId = request.user.userId;
+    const { commentId } = request.params;
     try {
       const comment = await Comment.findOne({
         where: {
-          id: comment_id,
-          user_id: user_id,
-          is_active: true,
+          id: commentId,
+          userId: userId,
+          isActive: true,
         },
       });
 
@@ -136,7 +135,7 @@ router.delete(
         return response.status(404).send({ message: "Comment not found" });
       }
 
-      comment.is_active = false;
+      comment.isActive = false;
       await comment.save();
       return response.status(200).send();
     } catch (e) {
@@ -146,31 +145,31 @@ router.delete(
 );
 
 router.patch(
-  "/api/v1/comment/:comment_id",
+  "/api/v1/comment/:commentId",
   authWithJWT,
-  param("comment_id").isUUID().withMessage("comment_id must be a valid UUID"),
+  param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
   body("content")
     .isString()
     .isLength({ min: 1, max: 255 })
     .withMessage("content must be between 1 and 255 characters long"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
-    const { comment_id } = request.params;
+    const { commentId } = request.params;
     const { content } = request.body;
-    const user_id_from_token = request.user.user_id;
+    const userIdFromToken = request.user.userId;
 
     const { Comment } = models;
 
     try {
       const comment = await Comment.findOne({
         where: {
-          id: comment_id,
-          user_id: user_id_from_token,
-          is_active: true,
+          id: commentId,
+          userId: userIdFromToken,
+          isActive: true,
         },
       });
 
@@ -179,15 +178,15 @@ router.patch(
       }
 
       comment.content = content;
-      comment.last_edited = new Date()
+      comment.lastEdited = new Date()
         .toISOString()
         .replace("T", " ")
         .replace("Z", "");
       await comment.save();
-      const { id, post_id, user_id, createdAt, last_edited } = comment;
+      const { id, postId, userId, createdAt, lastEdited } = comment;
       return response
         .status(200)
-        .send({ id, content, post_id, user_id, createdAt, last_edited });
+        .send({ id, content, postId, userId, createdAt, lastEdited });
     } catch (e) {
       return response.status(500).send();
     }
@@ -196,31 +195,31 @@ router.patch(
 
 // Get a comment by ID
 router.get(
-  "/api/v1/comment/:comment_id",
+  "/api/v1/comment/:commentId",
   authWithJWT,
-  param("comment_id").isUUID().withMessage("comment_id must be a valid UUID"),
+  param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
     const { Comment, User } = models;
-    const comment_id = request.params.comment_id;
+    const commentId = request.params.commentId;
     try {
       const comment = await Comment.findOne({
-        where: { is_active: true, id: comment_id },
+        where: { isActive: true, id: commentId },
         attributes: [
           "id",
           "content",
-          "post_id",
-          "user_id",
+          "postId",
+          "userId",
           "createdAt",
-          "last_edited",
+          "lastEdited",
         ],
         include: [
           {
             model: User,
-            attributes: ["user_name", "display_name"],
+            attributes: ["userName", "displayName"],
           },
         ],
       });

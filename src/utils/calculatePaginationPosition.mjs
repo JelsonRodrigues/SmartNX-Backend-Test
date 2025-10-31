@@ -2,19 +2,19 @@
 export default async function calculatePaginationPosition(
   page,
   limit,
-  item_count
+  itemCount
 ) {
-  const start_index = (page - 1) * limit;
+  const startIndex = (page - 1) * limit;
   const end_index = page * limit;
 
   const pagination = {};
-  if (start_index > 0 && start_index < item_count) {
+  if (startIndex > 0 && startIndex < itemCount) {
     pagination.previous = {
       page: page - 1,
       limit: limit,
     };
   }
-  if (end_index < item_count) {
+  if (end_index < itemCount) {
     pagination.next = {
       page: page + 1,
       limit: limit,

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body, validationResult, query } from "express-validator";
 import { models } from "../db/index.mjs";
-import calculate_hash_for_plaintext_password from "../utils/password_hasher.mjs";
+import calculateHashForPlaintextPassword from "../utils/passwordHasher.mjs";
 import authWithJWT from "../middleware/authWithJWT.mjs";
 import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
 
@@ -17,28 +17,28 @@ router.post(
     .isString()
     .isLength({ min: 12, max: 128 })
     .withMessage("password must be between 12 and 128 characters long"),
-  body("display_name")
+  body("displayName")
     .optional()
     .isString()
     .isLength({ min: 1, max: 128 })
-    .withMessage("display_name must be between 1 and 128 characters long"),
+    .withMessage("displayName must be between 1 and 128 characters long"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
+    const resultOfValidation = validationResult(request);
 
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
 
-    const { username, password, display_name } = request.body;
+    const { username, password, displayName } = request.body;
 
     const { User } = models;
-    const new_user = User.build({
-      user_name: username,
-      display_name: display_name,
-      password: calculate_hash_for_plaintext_password(password),
+    const newUser = User.build({
+      userName: username,
+      displayName: displayName,
+      password: calculateHashForPlaintextPassword(password),
     });
     try {
-      await new_user.save();
+      await newUser.save();
     } catch (e) {
       return response.status(409).send();
     }
@@ -48,12 +48,12 @@ router.post(
 );
 
 router.get("/api/v1/user/me", authWithJWT, async (request, response) => {
-  const user_id = request.user.user_id;
+  const userId = request.user.userId;
   const { User } = models;
 
   const user = await User.findOne({
-    where: { id: user_id, is_active: true },
-    attributes: ["user_name", "display_name", "id"],
+    where: { id: userId, isActive: true },
+    attributes: ["userName", "displayName", "id"],
   });
   if (!user) {
     return response.status(404).send();
@@ -65,11 +65,11 @@ router.get("/api/v1/user/me", authWithJWT, async (request, response) => {
 router.patch(
   "/api/v1/user/me",
   authWithJWT,
-  body("display_name")
+  body("displayName")
     .optional()
     .isString()
     .isLength({ min: 1, max: 128 })
-    .withMessage("display_name must be between 1 and 128 characters long"),
+    .withMessage("displayName must be between 1 and 128 characters long"),
   body("password")
     .optional()
     .isString()
@@ -81,36 +81,36 @@ router.patch(
     .isLength({ min: 6, max: 64 })
     .withMessage("username must be between 6 and 64 characters long"),
   async (request, response) => {
-    const result_of_validation = validationResult(request);
-    if (!result_of_validation.isEmpty()) {
-      return response.status(400).send(result_of_validation.array());
+    const resultOfValidation = validationResult(request);
+    if (!resultOfValidation.isEmpty()) {
+      return response.status(400).send(resultOfValidation.array());
     }
     if (!request.body) {
       return response.status(400).send();
     }
-    const user_id = request.user.user_id;
+    const userId = request.user.userId;
     const { User } = models;
 
     const user = await User.findOne({
-      where: { id: user_id, is_active: true },
+      where: { id: userId, isActive: true },
     });
     if (!user) {
       return response.status(404).send();
     }
 
-    const { display_name, password, username } = request.body || {};
+    const { displayName, password, username } = request.body || {};
 
-    if (display_name !== undefined) user.display_name = display_name;
+    if (displayName !== undefined) user.displayName = displayName;
     if (password !== undefined)
-      user.password = calculate_hash_for_plaintext_password(password);
-    if (username !== undefined) user.user_name = username;
+      user.password = calculateHashForPlaintextPassword(password);
+    if (username !== undefined) user.userName = username;
 
     try {
       await user.save();
-      const { id, user_name, display_name, createdAt } = user;
+      const { id, userName, displayName, createdAt } = user;
       return response
         .status(200)
-        .send({ id, user_name, display_name, createdAt });
+        .send({ id, userName, displayName, createdAt });
     } catch (e) {
       return response.status(409).send();
     }
@@ -118,13 +118,13 @@ router.patch(
 );
 
 router.delete("/api/v1/user/me", authWithJWT, async (request, response) => {
-  const user_id = request.user.user_id;
+  const userId = request.user.userId;
   const { User } = models;
-  const user = await User.findOne({ where: { id: user_id, is_active: true } });
+  const user = await User.findOne({ where: { id: userId, isActive: true } });
   if (!user) {
     return response.status(404).send();
   }
-  user.is_active = false;
+  user.isActive = false;
   try {
     await user.save();
     return response.status(200).send();
@@ -157,20 +157,20 @@ router.get(
     console.log(request.query);
     const page = parseInt(request.query.page || 1);
     const limit = parseInt(request.query.limit || 15);
-    const number_of_items = await User.count();
+    const numberOfItems = await User.count();
     const pagination = await calculatePaginationPosition(
       page,
       limit,
-      number_of_items
+      numberOfItems
     );
-    const start_index = (page - 1) * limit;
+    const startIndex = (page - 1) * limit;
 
     try {
       const items = await User.findAll({
-        where: { is_active: true },
-        offset: start_index,
+        where: { isActive: true },
+        offset: startIndex,
         limit: limit,
-        attributes: ["id", "user_name", "display_name", "createdAt"],
+        attributes: ["id", "userName", "displayName", "createdAt"],
       });
 
       if (!items) {
@@ -190,8 +190,8 @@ router.get("/api/v1/user/:username", authWithJWT, async (request, response) => {
 
   try {
     const user = await User.findOne({
-      where: { user_name: username, is_active: true },
-      attributes: ["id", "user_name", "display_name", "createdAt"],
+      where: { userName: username, isActive: true },
+      attributes: ["id", "userName", "displayName", "createdAt"],
     });
     if (!user) {
       return response.status(404).send();
@@ -203,16 +203,16 @@ router.get("/api/v1/user/:username", authWithJWT, async (request, response) => {
 });
 
 router.get(
-  "/api/v1/user/id/:user_id",
+  "/api/v1/user/id/:userId",
   authWithJWT,
   async (request, response) => {
-    const { user_id } = request.params;
+    const { userId } = request.params;
     const { User } = models;
 
     try {
       const user = await User.findOne({
-        where: { id: user_id, is_active: true },
-        attributes: ["id", "user_name", "display_name", "createdAt"],
+        where: { id: userId, isActive: true },
+        attributes: ["id", "userName", "displayName", "createdAt"],
       });
       if (!user) {
         return response.status(404).send();
