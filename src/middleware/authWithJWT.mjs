@@ -16,7 +16,7 @@ export default function authWithJWT(request, response, next) {
 
     const { User } = models;
     const userActiveOnDb = await User.findOne({
-      where: { id: user.userId, active: true },
+      where: { id: user.userId, isActive: true },
     });
     if (!userActiveOnDb) {
       return response.sendStatus(403);
