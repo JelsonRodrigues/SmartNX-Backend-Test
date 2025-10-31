@@ -122,6 +122,7 @@ router.delete("/api/v1/user/me", authWithJWT, async (request, response) => {
     await user.save();
     return response.status(200).send();
   } catch (e) {
+    console.error(e);
     return response.status(500).send();
   }
 });
@@ -169,6 +170,7 @@ router.get(
 
       return response.status(200).send({ pagination, items });
     } catch (err) {
+      console.error(err);
       return response.status(500).send();
     }
   }
@@ -193,6 +195,7 @@ router.get(
       }
       return response.status(200).send(user);
     } catch (error) {
+      console.error(error);
       return response.status(500).send();
     }
   }
@@ -217,6 +220,7 @@ router.get(
       }
       return response.status(200).send(user);
     } catch (error) {
+      console.error(error);
       return response.status(500).send();
     }
   }

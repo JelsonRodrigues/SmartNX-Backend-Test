@@ -116,6 +116,7 @@ router.get(
       }
       return response.status(200).send({ pagination, comments });
     } catch (e) {
+      console.error(e);
       return response.status(500).send();
     }
   }
@@ -149,6 +150,7 @@ router.delete(
       await comment.save();
       return response.status(200).send();
     } catch (e) {
+      console.error(e);
       return response.status(500).send();
     }
   }
@@ -194,6 +196,7 @@ router.patch(
         .status(200)
         .send({ id, content, postId, userId, createdAt, lastEdited });
     } catch (e) {
+      console.error(e);
       return response.status(500).send();
     }
   }
@@ -231,6 +234,7 @@ router.get(
       }
       return response.status(200).send(comment);
     } catch (e) {
+      console.error(e);
       return response.status(500).send();
     }
   }

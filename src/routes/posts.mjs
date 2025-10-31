@@ -30,6 +30,7 @@ router.post(
         .status(201)
         .send({ id, title, content, createdAt, lastEdited });
     } catch (e) {
+      console.error(e);
       return response.status(500).send();
     }
   }
@@ -86,6 +87,7 @@ router.get(
 
       return response.status(200).send({ pagination, items });
     } catch (err) {
+      console.error(err);
       return response.status(500).send();
     }
   }
@@ -115,6 +117,7 @@ router.get(
       }
       return response.status(200).send(item);
     } catch (error) {
+      console.error(error);
       return response.status(500).send();
     }
   }
@@ -160,7 +163,7 @@ router.patch(
         .status(200)
         .send({ id, title, content, createdAt, lastEdited });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return response.status(500).send();
     }
   }
@@ -188,6 +191,7 @@ router.delete(
       await post.save();
       return response.status(200).send();
     } catch (error) {
+      console.error(error);
       return response.status(500).send();
     }
   }
