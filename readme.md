@@ -24,6 +24,8 @@ A api deve ser segura, utilizando autenticação JWT para proteger as rotas de c
 
 A melhor forma de executar este projeto é utilizando docker ou podman utilizando o arquivo de configuração `docker-compose.yaml` ou `compose-using-env.yaml`.
 
+Ou pode testar a aplicação pelo seguinte URL público: https://smartnx-backend-test.jelson.dev.br/
+
 ### 1 - Clone o projeto
 
 ```shell
