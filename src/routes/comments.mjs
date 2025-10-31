@@ -25,7 +25,8 @@ router.post("/api/v1/post/:post_id/comment", authWithJWT,
 
     try {
       await new_comment.save();
-      return response.status(201).send(new_comment);
+      const {id, content, post_id, user_id, createdAt, last_edited} = new_comment;
+      return response.status(201).send({id, content, post_id, user_id, createdAt, last_edited});
     } catch (e) {
       console.error(e);
       return response.status(500).send();
@@ -33,7 +34,7 @@ router.post("/api/v1/post/:post_id/comment", authWithJWT,
   }
 );
 
-router.get("/api/v1/post/:post_id/comments", 
+router.get("/api/v1/comments/post/:post_id/", 
   authWithJWT,
   param("post_id").isUUID().withMessage("post_id must be a valid UUID"),
   query("page").optional().isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
@@ -56,6 +57,7 @@ router.get("/api/v1/post/:post_id/comments",
       const comments = await Comment.findAll({
         where: { post_id: post_id, is_active: true },
         offset: start_index, limit: limit,
+        attributes: ['id', 'content', 'post_id', 'user_id', 'createdAt', 'last_edited'],
         include: [{
           model: User,
           attributes: ['user_name', 'display_name']
@@ -73,9 +75,8 @@ router.get("/api/v1/post/:post_id/comments",
 );
 
 // - Delete comment
-router.delete("/api/v1/post/:post_id/comment/:comment_id",
+router.delete("/api/v1/comment/:comment_id",
   authWithJWT,
-  param("post_id").isUUID().withMessage("post_id must be a valid UUID"),
   param("comment_id").isUUID().withMessage("comment_id must be a valid UUID"),
   async (request, response) => {
     const result_of_validation = validationResult(request);
@@ -85,11 +86,11 @@ router.delete("/api/v1/post/:post_id/comment/:comment_id",
 
     const { Comment } = models;
     const user_id = request.user.user_id;
-    const { post_id, comment_id } = request.params;
+    const { comment_id } = request.params;
     try {
-      const comment = await Comment.findByPk(comment_id, {
+      const comment = await Comment.findOne({
         where: {
-          post_id: post_id,
+          id: comment_id,
           user_id: user_id,
           is_active: true
         }
@@ -108,9 +109,8 @@ router.delete("/api/v1/post/:post_id/comment/:comment_id",
   }
 );
 
-router.patch("/api/v1/post/:post_id/comment/:comment_id",
+router.patch("/api/v1/comment/:comment_id",
   authWithJWT,
-  param("post_id").isUUID().withMessage("post_id must be a valid UUID"),
   param("comment_id").isUUID().withMessage("comment_id must be a valid UUID"),
   body("content").isString().isLength({min: 1, max: 255}).withMessage("content must be between 1 and 255 characters long"),
   async (request, response) => {
@@ -119,17 +119,17 @@ router.patch("/api/v1/post/:post_id/comment/:comment_id",
       return response.status(400).send(result_of_validation.array())
     }
 
-    const { post_id, comment_id } = request.params;
+    const { comment_id } = request.params;
     const { content } = request.body;
-    const user_id = request.user.user_id;
+    const user_id_from_token = request.user.user_id;
 
     const { Comment } = models;
 
     try {
-      const comment = await Comment.findByPk(comment_id, {
+      const comment = await Comment.findOne({
         where: {
-          post_id: post_id,
-          user_id: user_id,
+          id: comment_id,
+          user_id: user_id_from_token,
           is_active: true
         }
       });
@@ -139,12 +139,12 @@ router.patch("/api/v1/post/:post_id/comment/:comment_id",
       }
 
       comment.content = content;
-      comment.last_edited = new Date().toISOString().replace('T', ' ').replace('Z', ' +00:00');
-
+      comment.last_edited = new Date().toISOString().replace('T', ' ').replace('Z', '');
       await comment.save();
-      return response.status(200).send(comment);
+      const { id, post_id, user_id, createdAt, last_edited } = comment;
+      return response.status(200).send({ id, content, post_id, user_id, createdAt, last_edited });
     } catch (e) {
-      return response.status(500).send();
+        return response.status(500).send();
     }
   }
 );
@@ -161,8 +161,9 @@ router.get("/api/v1/comment/:comment_id",
     const { Comment, User } = models;
     const comment_id = request.params.comment_id;
     try {
-      const comment = await Comment.findByPk(comment_id, {
-        where: { is_active: true },
+      const comment = await Comment.findOne({
+        where: { is_active: true, id: comment_id },
+        attributes: ['id', 'content', 'post_id', 'user_id', 'createdAt', 'last_edited'],
         include: [{
           model: User,
           attributes: ['user_name', 'display_name']
