@@ -17,7 +17,7 @@ This document details the available endpoints for the user management system, in
 
   | Parameter     | Type     | Required | Description                     |
   | :------------ | :------- | :------- | :------------------------------ |
-  | `userName`    | `string` | Yes      | Username (6-64 characters)      |
+  | `username`    | `string` | Yes      | Username (6-64 characters)      |
   | `password`    | `string` | Yes      | Password (12-128 characters)    |
   | `displayName` | `string` | No       | Display name (1-128 characters) |
 
@@ -51,7 +51,7 @@ This document details the available endpoints for the user management system, in
   | :------------ | :------- | :------- | :-------------------------------------- |
   | `displayName` | `string` | No       | Updated display name (1-128 characters) |
   | `password`    | `string` | No       | New password (12-128 characters)        |
-  | `userName`    | `string` | No       | New username (6-64 characters)          |
+  | `username`    | `string` | No       | New username (6-64 characters)          |
 
 - **Response:**
   - **200 OK:** Updated user object with fields: `id`, `userName`, `displayName`, and `createdAt`.
@@ -113,11 +113,11 @@ This document details the available endpoints for the user management system, in
 
 ### 6. Get User by Username
 
-- **Endpoint:** `/user/:userName`
+- **Endpoint:** `/user/:username`
 - **Method:** `GET`
 - **Authentication:** Yes (JWT)
 - **Parameters:**
-  - `userName` (path parameter): The username of the user to retrieve.
+  - `username` (path parameter): The username of the user to retrieve.
 - **Response:**
   - **200 OK:** User object with `id`, `userName`, `displayName`, and `createdAt`.
   - **404 Not Found:** User not found or inactive.
@@ -248,7 +248,7 @@ This document details the available endpoints for the user management system, in
 - **Authentication:** Yes (JWT)
 - **Path Parameters:**
   - `postId`: Valid UUID of the post.
-- **Request Body:** (Optional fields)
+- **Request Body:** (Optional fields, at least one must be present)
 
   - `title`: (Optional) Updated post title (1-64 chars).
   - `content`: (Optional) Updated post content (1-255 chars).
@@ -282,16 +282,15 @@ This document details the available endpoints for the user management system, in
 
 ### 1. Create a New Comment
 
-- **Endpoint:** `/comment/:postId`
+- **Endpoint:** `/comment/create`
 - **Method:** `POST`
 - **Authentication:** Yes (JWT)
-- **Path Parameters:**
-  - `postId`: Valid UUID of the post.
 - **Request Body:**
 
-  | Parameter | Type     | Required | Description                   |
-  | :-------- | :------- | :------- | :---------------------------- |
-  | `content` | `string` | Yes      | Comment content (1-255 chars) |
+  | Parameter | Type     | Required | Description                                        |
+  | :-------- | :------- | :------- | :------------------------------------------------- |
+  | `content` | `string` | Yes      | Comment content (1-255 chars)                      |
+  | `postId`  | `string` | Yes      | Post ID to associate the comment with (valid UUID) |
 
 - **Response:**
   - **201 Created:** New comment object with `id`, `content`, `postId`, `userId`, `createdAt`, and `lastEdited`.
@@ -308,8 +307,8 @@ This document details the available endpoints for the user management system, in
 - **Path Parameters:**
   - `postId`: Valid UUID of the post.
 - **Query Parameters:**
-  - `page`: (Optional) Page number (numeric, min 1)
-  - `limit`: (Optional) Number of comments per page (numeric, min 1, max 50)
+  - `page`: (Optional) Page number (numeric, min 1), defaults to 1
+  - `limit`: (Optional) Number of comments per page (numeric, min 1, max 50), dafaults to 15
 - **Response:**
   - **200 OK:**
     ```json
@@ -382,7 +381,7 @@ This document details the available endpoints for the user management system, in
 - **Path Parameters:**
   - `commentId`: Valid UUID of the comment.
 - **Response:**
-  - **200 OK:** Comment object with `id`, `content`, `postId`, `userId`, `createdAt`, and `lastEdited`.
+  - **200 OK:** Comment object with `id`, `content`, `postId`, `userId`, `createdAt`, `lastEdited`, `userName` and `displayName`.
   - **404 Not Found:** Comment not found.
   - **500 Internal Server Error:** An unexpected error occurred.
 
