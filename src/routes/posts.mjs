@@ -42,6 +42,7 @@ router.post("/api/v1/post/create",
 });
 
 router.get("/api/v1/posts", authWithJWT,
+  param("user_id").optional().isUUID().notEmpty(),
   query("page").optional().isNumeric().withMessage("page must be a number").isInt({min:1}).withMessage("page must be >= 1"),
   query("limit").optional().isNumeric().withMessage("limit must be a number").isInt({min:1, max: 50}).withMessage("limt must be between 1 and 50"),
   async (request, response) => {
@@ -51,14 +52,15 @@ router.get("/api/v1/posts", authWithJWT,
   }
   const { Post } = models;
   const { User } = models;
+  const user_id = request.query.user_id;
   const page  = parseInt(request.query.page || 1);
   const limit  = parseInt(request.query.limit || 15);
-  const number_of_items =  await Post.count();
+  const number_of_items =  await Post.count({ where: { is_active: true, ...(user_id ? { user_id: user_id } : {}) } });
   const pagination = await calculatePaginationPosition(page, limit, number_of_items);
   const start_index = (page - 1) * limit;
   try {
     const items = await Post.findAll(
-      { where: { is_active: true },
+      { where: { is_active: true, ...(user_id ? { user_id: user_id } : {}) },
       attributes: ['id', 'title', 'content', 'createdAt', 'last_edited'],
       offset: start_index, limit: limit, 
       include: { model: User, where : { is_active: true}, attributes: ['user_name', 'display_name']}});
