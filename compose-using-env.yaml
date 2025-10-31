@@ -21,8 +21,6 @@ services:
       - "3000:3000"
     volumes:
       - ./.env.example:/app/.env
-    environment:
-      - NODE_ENV=production
     networks:
       - external-network
       - internal-network
