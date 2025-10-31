@@ -8,9 +8,9 @@ import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 const router = Router();
 
 router.post(
-  "/api/v1/comment/:postId",
+  "/api/v1/comment/create",
   authWithJWT,
-  param("postId").isUUID().withMessage("postId must be a valid UUID"),
+  body("postId").isUUID().withMessage("postId must be a valid UUID"),
   body("content")
     .isString()
     .isLength({ min: 1, max: 255 })
@@ -18,9 +18,9 @@ router.post(
   doValidationOfRequest,
   async (request, response) => {
     const userId = request.user.userId;
+    const postId = request.body.postId;
     const { Comment } = models;
     const { Post } = models;
-    const { User } = models;
 
     const originalPost = await Post.findOne({
       where: { id: postId, isActive: true },
@@ -33,7 +33,7 @@ router.post(
     const newComment = Comment.build({
       content: request.body.content,
       userId: userId,
-      postId: request.params.postId,
+      postId: postId,
     });
 
     try {
