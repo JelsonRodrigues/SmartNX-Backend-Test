@@ -3,6 +3,7 @@ import authWithJWT from "../middleware/authWithJWT.mjs";
 import { body, query, param, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
+import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 
 const router = Router();
 
@@ -14,12 +15,8 @@ router.post(
     .isString()
     .isLength({ min: 1, max: 255 })
     .withMessage("content must be between 1 and 255 characters long"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const userId = request.user.userId;
     const { Comment } = models;
     const newComment = Comment.build({
@@ -57,11 +54,8 @@ router.get(
     .withMessage("limit must be a number")
     .isInt({ min: 1, max: 50 })
     .withMessage("limt must be between 1 and 50"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
     const { Comment, User } = models;
     const postId = request.params.postId;
 
@@ -113,12 +107,8 @@ router.delete(
   "/api/v1/comment/:commentId",
   authWithJWT,
   param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const { Comment } = models;
     const userId = request.user.userId;
     const { commentId } = request.params;
@@ -152,12 +142,8 @@ router.patch(
     .isString()
     .isLength({ min: 1, max: 255 })
     .withMessage("content must be between 1 and 255 characters long"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const { commentId } = request.params;
     const { content } = request.body;
     const userIdFromToken = request.user.userId;
@@ -198,11 +184,8 @@ router.get(
   "/api/v1/comment/:commentId",
   authWithJWT,
   param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
     const { Comment, User } = models;
     const commentId = request.params.commentId;
     try {

@@ -3,6 +3,7 @@ import { body, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 
 const router = Router();
 
@@ -16,13 +17,8 @@ router.post(
     .isString()
     .isLength({ min: 12, max: 128 })
     .withMessage("password must be between 12 and 128 characters long"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const { username, password } = request.body;
     const { User } = models;
     const user = await User.findOne({

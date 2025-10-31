@@ -3,6 +3,7 @@ import authWithJWT from "../middleware/authWithJWT.mjs";
 import { body, query, param, validationResult } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
+import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 
 const router = Router();
 
@@ -11,12 +12,8 @@ router.post(
   authWithJWT,
   body("title").isString().isLength({ min: 1, max: 64 }),
   body("content").isString().isLength({ min: 1, max: 255 }),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const userId = request.user.userId;
     const { Post } = models;
     const newPost = Post.build({

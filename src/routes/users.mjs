@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { body, validationResult, query } from "express-validator";
+import { body, query, param } from "express-validator";
 import { models } from "../db/index.mjs";
 import calculateHashForPlaintextPassword from "../utils/passwordHasher.mjs";
 import authWithJWT from "../middleware/authWithJWT.mjs";
 import calculatePaginationPosition from "../utils/calculatePaginationPosition.mjs";
+import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 
 const router = Router();
 
@@ -22,13 +23,8 @@ router.post(
     .isString()
     .isLength({ min: 1, max: 128 })
     .withMessage("displayName must be between 1 and 128 characters long"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const { username, password, displayName } = request.body;
 
     const { User } = models;
@@ -80,11 +76,8 @@ router.patch(
     .isString()
     .isLength({ min: 6, max: 64 })
     .withMessage("username must be between 6 and 64 characters long"),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
     if (!request.body) {
       return response.status(400).send();
     }
@@ -148,11 +141,8 @@ router.get(
     .withMessage("limit must be a number")
     .isInt({ min: 1, max: 50 })
     .withMessage("limt must be between 1 and 50"),
+  doValidationOfRequest,
   async (request, response) => {
-    const result = validationResult(request);
-    if (!result.isEmpty()) {
-      return response.status(400).send(result.array());
-    }
     const { User } = models;
     console.log(request.query);
     const page = parseInt(request.query.page || 1);
@@ -184,27 +174,35 @@ router.get(
   }
 );
 
-router.get("/api/v1/user/:username", authWithJWT, async (request, response) => {
-  const { username } = request.params;
-  const { User } = models;
+router.get(
+  "/api/v1/user/:username",
+  authWithJWT,
+  param("username").isString().isLength({ min: 6, max: 64 }),
+  doValidationOfRequest,
+  async (request, response) => {
+    const { username } = request.params;
+    const { User } = models;
 
-  try {
-    const user = await User.findOne({
-      where: { userName: username, isActive: true },
-      attributes: ["id", "userName", "displayName", "createdAt"],
-    });
-    if (!user) {
-      return response.status(404).send();
+    try {
+      const user = await User.findOne({
+        where: { userName: username, isActive: true },
+        attributes: ["id", "userName", "displayName", "createdAt"],
+      });
+      if (!user) {
+        return response.status(404).send();
+      }
+      return response.status(200).send(user);
+    } catch (error) {
+      return response.status(500).send();
     }
-    return response.status(200).send(user);
-  } catch (error) {
-    return response.status().send();
   }
-});
+);
 
 router.get(
   "/api/v1/user/id/:userId",
   authWithJWT,
+  param("userId").isUUID().withMessage("userId must be a valid UUID"),
+  doValidationOfRequest,
   async (request, response) => {
     const { userId } = request.params;
     const { User } = models;
