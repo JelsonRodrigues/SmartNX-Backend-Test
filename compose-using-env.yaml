@@ -1,0 +1,45 @@
+version: "3.9"
+
+networks:
+  external-network:
+    driver: bridge
+    internal: false
+    enable_ipv6: true
+  internal-network:
+    driver: bridge
+    internal: true
+    enable_ipv6: true
+
+services:
+  backend:
+    container_name: backend
+    hostname: backend
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./.env.example:/app/.env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - external-network
+      - internal-network
+    restart: always
+    depends_on:
+      - postgres-db
+
+  postgres-db:
+    container_name: postgres-db
+    hostname: postgres-db
+    image: docker.io/postgres:latest
+    environment:
+      - POSTGRES_USER=yourusername
+      - POSTGRES_PASSWORD=yourpassword
+      - POSTGRES_DB=yourdatabase
+    networks:
+      - internal-network
+    restart: always
+    volumes:
+      - ./postgres:/var/lib/postgresql
