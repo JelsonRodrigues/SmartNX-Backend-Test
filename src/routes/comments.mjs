@@ -22,13 +22,6 @@ router.post(
     const { Post } = models;
     const { User } = models;
 
-    const userDoingPostActive = await User.findOne({
-      where: { id: userId, active: true },
-    });
-    if (!userDoingPostActive) {
-      return response.status(403).send();
-    }
-
     const originalPost = await Post.findOne({
       where: { id: postId, isActive: true },
     });
@@ -76,13 +69,6 @@ router.get(
   async (request, response) => {
     const { Comment, User, Post } = models;
     const postId = request.params.postId;
-
-    const userDoingPostActive = await User.findOne({
-      where: { id: request.user.userId, active: true },
-    });
-    if (!userDoingPostActive) {
-      return response.status(403).send();
-    }
 
     const postActiveFound = await Post.findOne({
       where: { id: postId, isActive: true },
@@ -145,13 +131,6 @@ router.delete(
     const { Comment, User } = models;
     const userId = request.user.userId;
 
-    const userDeletingIsActive = await User.findOne({
-      where: { id: userId, active: true },
-    });
-    if (!userDeletingIsActive) {
-      return response.status(403).send();
-    }
-
     const { commentId } = request.params;
     try {
       const comment = await Comment.findOne({
@@ -189,11 +168,7 @@ router.patch(
     const { content } = request.body;
     const userIdFromToken = request.user.userId;
 
-    const { Comment, User } = models;
-
-    const userIsActive = await User.findOne({
-      where: { id: userIdFromToken, active: true },
-    });
+    const { Comment } = models;
 
     try {
       const comment = await Comment.findOne({

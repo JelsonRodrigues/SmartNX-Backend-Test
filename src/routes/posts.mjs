@@ -15,7 +15,8 @@ router.post(
   doValidationOfRequest,
   async (request, response) => {
     const userId = request.user.userId;
-    const { Post } = models;
+    const { Post, User } = models;
+
     const newPost = Post.build({
       title: request.body.title,
       content: request.body.content,
@@ -29,7 +30,7 @@ router.post(
         .status(201)
         .send({ id, title, content, createdAt, lastEdited });
     } catch (e) {
-      return response.status(409).send();
+      return response.status(500).send();
     }
   }
 );
@@ -50,13 +51,11 @@ router.get(
     .withMessage("limit must be a number")
     .isInt({ min: 1, max: 50 })
     .withMessage("limt must be between 1 and 50"),
+  doValidationOfRequest,
   async (request, response) => {
-    const result = validationResult(request);
-    if (!result.isEmpty()) {
-      return response.status(400).send(result.array());
-    }
     const { Post } = models;
     const { User } = models;
+
     const userId = request.query.userId;
     const page = parseInt(request.query.page || 1);
     const limit = parseInt(request.query.limit || 15);
@@ -96,12 +95,8 @@ router.get(
   "/api/v1/post/:postId",
   authWithJWT,
   param("postId").isUUID().notEmpty(),
+  doValidationOfRequest,
   async (request, response) => {
-    const result = validationResult(request);
-    if (!result.isEmpty()) {
-      return response.status(400).send(result.array());
-    }
-
     const postId = request.params.postId;
     const { Post } = models;
     const { User } = models;
@@ -131,12 +126,8 @@ router.patch(
   body("title").optional().isString().isLength({ min: 1, max: 64 }),
   body("content").optional().isString().isLength({ min: 1, max: 255 }),
   param("id").isUUID().notEmpty(),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
-
     const postId = request.params.id;
     const { Post } = models;
     const post = await Post.findOne({
@@ -179,11 +170,8 @@ router.delete(
   "/api/v1/post/:id",
   authWithJWT,
   param("id").isUUID().notEmpty(),
+  doValidationOfRequest,
   async (request, response) => {
-    const resultOfValidation = validationResult(request);
-    if (!resultOfValidation.isEmpty()) {
-      return response.status(400).send(resultOfValidation.array());
-    }
     const postId = request.params.id;
     const { Post } = models;
     const post = await Post.findOne({
