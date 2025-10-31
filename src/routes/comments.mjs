@@ -19,6 +19,24 @@ router.post(
   async (request, response) => {
     const userId = request.user.userId;
     const { Comment } = models;
+    const { Post } = models;
+    const { User } = models;
+
+    const userDoingPostActive = await User.findOne({
+      where: { id: userId, active: true },
+    });
+    if (!userDoingPostActive) {
+      return response.status(403).send();
+    }
+
+    const originalPost = await Post.findOne({
+      where: { id: postId, isActive: true },
+    });
+
+    if (!originalPost) {
+      return response.status(404).send();
+    }
+
     const newComment = Comment.build({
       content: request.body.content,
       userId: userId,
@@ -39,7 +57,7 @@ router.post(
 );
 
 router.get(
-  "/api/v1/comments/post/:postId/",
+  "/api/v1/comments/:postId",
   authWithJWT,
   param("postId").isUUID().withMessage("postId must be a valid UUID"),
   query("page")
@@ -56,8 +74,22 @@ router.get(
     .withMessage("limt must be between 1 and 50"),
   doValidationOfRequest,
   async (request, response) => {
-    const { Comment, User } = models;
+    const { Comment, User, Post } = models;
     const postId = request.params.postId;
+
+    const userDoingPostActive = await User.findOne({
+      where: { id: request.user.userId, active: true },
+    });
+    if (!userDoingPostActive) {
+      return response.status(403).send();
+    }
+
+    const postActiveFound = await Post.findOne({
+      where: { id: postId, isActive: true },
+    });
+    if (!postActiveFound) {
+      return response.status(404).send();
+    }
 
     const page = parseInt(request.query.page || 1);
     const limit = parseInt(request.query.limit || 15);
@@ -88,6 +120,7 @@ router.get(
           {
             model: User,
             attributes: ["userName", "displayName"],
+            where: { isActive: true },
           },
         ],
         order: [["createdAt", "DESC"]],
@@ -109,8 +142,16 @@ router.delete(
   param("commentId").isUUID().withMessage("commentId must be a valid UUID"),
   doValidationOfRequest,
   async (request, response) => {
-    const { Comment } = models;
+    const { Comment, User } = models;
     const userId = request.user.userId;
+
+    const userDeletingIsActive = await User.findOne({
+      where: { id: userId, active: true },
+    });
+    if (!userDeletingIsActive) {
+      return response.status(403).send();
+    }
+
     const { commentId } = request.params;
     try {
       const comment = await Comment.findOne({
@@ -148,7 +189,11 @@ router.patch(
     const { content } = request.body;
     const userIdFromToken = request.user.userId;
 
-    const { Comment } = models;
+    const { Comment, User } = models;
+
+    const userIsActive = await User.findOne({
+      where: { id: userIdFromToken, active: true },
+    });
 
     try {
       const comment = await Comment.findOne({
