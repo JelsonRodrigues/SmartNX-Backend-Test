@@ -8,7 +8,7 @@ import doValidationOfRequest from "../middleware/doValidationOfRequest.mjs";
 const router = Router();
 
 router.post(
-  "/api/v1/post/:postId/comment",
+  "/api/v1/comment/:postId",
   authWithJWT,
   param("postId").isUUID().withMessage("postId must be a valid UUID"),
   body("content")
