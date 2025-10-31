@@ -302,7 +302,7 @@ This document details the available endpoints for the user management system, in
 
 ### 2. Get Comments for a Post (Paginated)
 
-- **Endpoint:** `/comments/post/:postId`
+- **Endpoint:** `/comments/:postId`
 - **Method:** `GET`
 - **Authentication:** Yes (JWT)
 - **Path Parameters:**
